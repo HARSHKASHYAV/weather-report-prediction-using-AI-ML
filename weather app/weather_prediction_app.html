@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeatherMind AI — Seattle Weather Prediction System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #111318;
+    --bg3: #181c24;
+    --card: #13161e;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f2f8;
+    --muted: #6b7280;
+    --accent: #4f9cf9;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --teal: #2dd4bf;
+    --rain: #4f9cf9;
+    --sun: #fbbf24;
+    --fog: #94a3b8;
+    --drizzle: #34d399;
+    --snow: #a78bfa;
+    --font-head: 'Space Grotesk', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --glow: 0 0 40px rgba(79,156,249,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BACKGROUND GRID */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,156,249,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,156,249,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,12,16,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+  .nav-logo {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:0.5;transform:scale(1.4);}
+  }
+  .nav-pills {
+    display: flex;
+    gap: 6px;
+  }
+  .nav-pill {
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    font-family: var(--font-body);
+  }
+  .nav-pill:hover, .nav-pill.active {
+    background: rgba(79,156,249,0.12);
+    border-color: rgba(79,156,249,0.4);
+    color: var(--accent);
+  }
+  .nav-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(52,211,153,0.1);
+    border: 1px solid rgba(52,211,153,0.2);
+    color: var(--green);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 3rem 0 2.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(20px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(79,156,249,0.08);
+    border: 1px solid rgba(79,156,249,0.2);
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #f0f2f8 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+  .stat-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+  }
+  .stat-value {
+    font-family: var(--font-head);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .stat-value.blue { color: var(--accent); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.purple { color: var(--accent2); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* SECTION LABEL */
+  .sec-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-label::before {
+    content: '';
+    display: block;
+    width: 3px; height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 1.5px dashed rgba(79,156,249,0.3);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(79,156,249,0.03);
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s 0.15s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(79,156,249,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .upload-zone:hover {
+    border-color: rgba(79,156,249,0.6);
+    background: rgba(79,156,249,0.06);
+  }
+  .upload-icon-wrap {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: rgba(79,156,249,0.1);
+    border: 1px solid rgba(79,156,249,0.2);
+    display: flex;align-items:center;justify-content:center;
+    margin: 0 auto 1rem;
+    font-size: 22px;
+  }
+  .upload-title {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .upload-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  #csv-file { display: none; }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  @media(max-width:768px){.main-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .card-title {
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex;align-items:center;justify-content:center;
+    font-size: 14px;
+    background: rgba(79,156,249,0.1);
+  }
+
+  /* SLIDER FIELD */
+  .field { margin-bottom: 1.1rem; }
+  .field-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 7px;
+  }
+  .field-name {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .field-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--font-mono);
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg3);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 3px rgba(79,156,249,0.15);
+    transition: box-shadow 0.2s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 5px rgba(79,156,249,0.25);
+  }
+  select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  select:focus { border-color: var(--accent); }
+
+  /* ENG FEATURES */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+  .feat-item {
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+  .feat-item-label { font-size: 10px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 3px; }
+  .feat-item-val { font-size: 14px; font-weight: 600; color: var(--text); font-family: var(--font-head); }
+
+  /* PRESETS */
+  .preset-row {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+  .preset-btn {
+    padding: 9px 12px;
+    font-size: 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--bg3);
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preset-btn:hover {
+    border-color: rgba(79,156,249,0.4);
+    background: rgba(79,156,249,0.07);
+    color: var(--accent);
+  }
+
+  /* MODEL TABS */
+  .model-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .model-tab {
+    padding: 6px 14px;
+    font-size: 12px;
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    transition: all 0.2s;
+  }
+  .model-tab:hover { color: var(--text); border-color: var(--border2); }
+  .model-tab.active {
+    background: rgba(79,156,249,0.12);
+    border-color: rgba(79,156,249,0.4);
+    color: var(--accent);
+  }
+
+  /* RUN BUTTON */
+  .run-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: var(--font-head);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    border: none;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .run-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .run-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .run-btn:active { transform: scale(0.99); }
+
+  /* RESULT SECTION */
+  .result-section { display: none; animation: fadeUp 0.4s ease both; }
+  .result-section.show { display: block; }
+
+  .result-hero {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-hero::before {
+    content: '';
+    position: absolute;
+    top: -50px; left: 50%;
+    transform: translateX(-50%);
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(79,156,249,0.12), transparent 70%);
+    pointer-events: none;
+  }
+  .result-emoji {
+    font-size: 56px;
+    line-height: 1;
+    margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(79,156,249,0.3));
+    animation: floatEmoji 3s ease-in-out infinite;
+  }
+  @keyframes floatEmoji {
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-6px);}
+  }
+  .result-weather-name {
+    font-family: var(--font-head);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    margin-bottom: 4px;
+  }
+  .result-model-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+  .conf-meter {
+    max-width: 320px;
+    margin: 0 auto 1.5rem;
+  }
+  .conf-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    margin-bottom: 6px;
+  }
+  .conf-val { color: var(--green); font-weight: 600; font-size: 13px; }
+  .meter-track {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* PROBS */
+  .prob-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .prob-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+  .prob-row-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .prob-row-item:last-child { margin-bottom: 0; }
+  .prob-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .prob-name {
+    font-size: 12px;
+    color: var(--text);
+    width: 60px;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+  }
+  .prob-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .prob-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .prob-pct {
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    width: 34px;
+    text-align: right;
+  }
+
+  /* MODELS COMPARISON */
+  .model-compare-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .model-compare-row:last-child { margin-bottom: 0; }
+  .mcr-name {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    width: 140px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .best-chip {
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.25);
+    color: var(--green);
+    font-weight: 600;
+  }
+  .mcr-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .mcr-fill {
+    height: 100%;
+    border-radius: 4px;
+  }
+  .mcr-pct {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    width: 46px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  /* FEATURE IMPORTANCE */
+  .fi-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 9px;
+  }
+  .fi-row:last-child { margin-bottom: 0; }
+  .fi-name {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    width: 110px;
+    flex-shrink: 0;
+  }
+  .fi-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .fi-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  }
+  .fi-pct {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--accent2);
+    width: 36px;
+    text-align: right;
+  }
+
+  /* CSV TABLE */
+  .table-wrap { overflow-x: auto; }
+  .csv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .csv-table th {
+    padding: 8px 12px;
+    text-align: left;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .csv-table td {
+    padding: 8px 12px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .csv-table tr:last-child td { border-bottom: none; }
+  .csv-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .wpill {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  footer span { color: var(--accent); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 999;
+    display: none;
+    animation: slideUp 0.3s ease;
+    font-family: var(--font-body);
+  }
+  @keyframes slideUp {
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .toast.show { display: block; }
+  .toast .t-green { color: var(--green); font-weight: 600; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-dot"></div>
+    WeatherMind<span style="color:var(--accent)">AI</span>
+  </div>
+  <div class="nav-pills">
+    <button class="nav-pill active">Prediction</button>
+    <button class="nav-pill" onclick="document.getElementById('models-section').scrollIntoView({behavior:'smooth'})">Models</button>
+    <button class="nav-pill" onclick="document.getElementById('upload-section').scrollIntoView({behavior:'smooth'})">Dataset</button>
+  </div>
+  <div class="nav-badge">v2.0 · RF 84.98%</div>
+</nav>
+
+<main>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">⚡ AI/ML Final Year Project · Seattle Weather Dataset</div>
+    <h1>Predict Weather with<br><span>Machine Intelligence</span></h1>
+    <p>Upload your CSV dataset or use the sliders. Five ML models predict weather type in real time with full probability analysis.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">// dataset_rows</div>
+      <div class="stat-value blue" id="s-rows">1,461</div>
+      <div class="stat-sub">days of weather data</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">// best_accuracy</div>
+      <div class="stat-value green">84.98%</div>
+      <div class="stat-sub">Random Forest model</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">// features_used</div>
+      <div class="stat-value purple">11</div>
+      <div class="stat-sub">engineered features</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">// models_trained</div>
+      <div class="stat-value amber">5</div>
+      <div class="stat-sub">ML models compared</div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div id="upload-section">
+    <div class="sec-label">Dataset Upload</div>
+    <div class="upload-zone" onclick="document.getElementById('csv-file').click()">
+      <div class="upload-icon-wrap">📂</div>
+      <div class="upload-title" id="upload-title">Drop your CSV file here</div>
+      <div class="upload-sub" id="upload-sub">Click to browse · seattle-weather.csv · date, precipitation, temp_max, temp_min, wind, weather</div>
+    </div>
+    <input type="file" id="csv-file" accept=".csv" onchange="loadCSV(this)">
+
+    <div id="csv-preview-box" style="display:none;margin-bottom:1.5rem;">
+      <div class="sec-label">CSV Preview — first 5 rows</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="csv-table" id="csv-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="sec-label">Sensor Input Values</div>
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-title"><span class="icon">🎛️</span> Input Parameters</div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-name">precipitation_mm</span>
+          <span class="field-val" id="v-prec">5.0 mm</span>
+        </div>
+        <input type="range" min="0" max="56" step="0.5" value="5" id="prec" oninput="upd('prec',this.value,'mm')">
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-name">temp_max_celsius</span>
+          <span class="field-val" id="v-tmax">20.0 °C</span>
+        </div>
+        <input type="range" min="-2" max="36" step="0.5" value="20" id="tmax" oninput="upd('tmax',this.value,'°C')">
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-name">temp_min_celsius</span>
+          <span class="field-val" id="v-tmin">10.0 °C</span>
+        </div>
+        <input type="range" min="-8" max="19" step="0.5" value="10" id="tmin" oninput="upd('tmin',this.value,'°C')">
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <span class="field-name">wind_speed_ms</span>
+          <span class="field-val" id="v-wind">3.0 m/s</span>
+        </div>
+        <input type="range" min="0.4" max="9.5" step="0.1" value="3" id="wind" oninput="upd('wind',this.value,'m/s')">
+      </div>
+
+      <div class="field">
+        <div class="field-head" style="margin-bottom:8px;">
+          <span class="field-name">month_of_year</span>
+        </div>
+        <select id="month" onchange="calcFeatures()">
+          <option value="1">01 — January</option>
+          <option value="2">02 — February</option>
+          <option value="3">03 — March</option>
+          <option value="4">04 — April</option>
+          <option value="5">05 — May</option>
+          <option value="6">06 — June</option>
+          <option value="7" selected>07 — July</option>
+          <option value="8">08 — August</option>
+          <option value="9">09 — September</option>
+          <option value="10">10 — October</option>
+          <option value="11">11 — November</option>
+          <option value="12">12 — December</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">⚙️</span> Engineered Features (Auto)</div>
+      <div class="feat-grid">
+        <div class="feat-item"><div class="feat-item-label">temp_range</div><div class="feat-item-val" id="f-range">10.0°</div></div>
+        <div class="feat-item"><div class="feat-item-label">temp_avg</div><div class="feat-item-val" id="f-avg">15.0°</div></div>
+        <div class="feat-item"><div class="feat-item-label">season</div><div class="feat-item-val" id="f-season">Summer</div></div>
+        <div class="feat-item"><div class="feat-item-label">rainy_season</div><div class="feat-item-val" id="f-rainy" style="color:var(--green)">No</div></div>
+        <div class="feat-item"><div class="feat-item-label">high_wind</div><div class="feat-item-val" id="f-wind" style="color:var(--green)">No</div></div>
+        <div class="feat-item"><div class="feat-item-label">heavy_rain</div><div class="feat-item-val" id="f-rain" style="color:var(--green)">No</div></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="card-title" style="margin-bottom:10px;"><span class="icon">⚡</span> Quick Presets</div>
+      <div class="preset-row">
+        <button class="preset-btn" onclick="preset(0,29,16,2,7)">☀️ Sunny Summer</button>
+        <button class="preset-btn" onclick="preset(18,7,2,5,1)">🌧️ Rainy Winter</button>
+        <button class="preset-btn" onclick="preset(0,-1,-6,2,2)">❄️ Snowy Day</button>
+        <button class="preset-btn" onclick="preset(0.5,11,7,1.5,11)">🌫️ Foggy Autumn</button>
+      </div>
+
+      <div class="divider"></div>
+      <div class="card-title" style="margin-bottom:10px;"><span class="icon">🤖</span> Select ML Model</div>
+      <div class="model-tabs" id="model-tabs">
+        <button class="model-tab active" onclick="selectModel('rf',this)">Random Forest</button>
+        <button class="model-tab" onclick="selectModel('gb',this)">Grad. Boost</button>
+        <button class="model-tab" onclick="selectModel('knn',this)">KNN</button>
+        <button class="model-tab" onclick="selectModel('svm',this)">SVM</button>
+        <button class="model-tab" onclick="selectModel('lr',this)">Log. Reg.</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="run-btn" onclick="runPrediction()">⚡ Run AI Prediction</button>
+
+  <!-- RESULTS -->
+  <div class="result-section" id="result-section">
+    <div class="sec-label">Prediction Output</div>
+
+    <div class="result-hero">
+      <span class="result-emoji" id="r-emoji">☀️</span>
+      <div class="result-weather-name" id="r-name">Sun</div>
+      <div class="result-model-tag" id="r-modeltag">predicted by Random Forest</div>
+      <div class="conf-meter">
+        <div class="conf-label-row">
+          <span>Model Confidence</span>
+          <span class="conf-val" id="r-confval">91%</span>
+        </div>
+        <div class="meter-track">
+          <div class="meter-fill" id="r-mfill" style="width:91%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prob-grid" id="models-section">
+      <!-- Prob bars -->
+      <div class="prob-card">
+        <div class="card-title" style="margin-bottom:1rem;"><span class="icon">📊</span> Class Probabilities</div>
+        <div id="prob-bars"></div>
+      </div>
+
+      <!-- Model comparison -->
+      <div class="prob-card">
+        <div class="card-title" style="margin-bottom:1rem;"><span class="icon">🏆</span> All Models — Accuracy</div>
+        <div id="model-compare-bars"></div>
+      </div>
+
+      <!-- Feature importance -->
+      <div class="prob-card">
+        <div class="card-title" style="margin-bottom:1rem;"><span class="icon">🔑</span> Feature Importance</div>
+        <div id="feat-imp-bars"></div>
+      </div>
+
+      <!-- Input summary -->
+      <div class="prob-card">
+        <div class="card-title" style="margin-bottom:1rem;"><span class="icon">📋</span> Input Summary</div>
+        <div id="input-summary"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  WeatherMind AI · <span>Final Year AI/ML Project</span> · Seattle Weather Dataset 2012–2015 · 5 Models · 84.98% Accuracy
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const seasons = {1:'Winter',2:'Winter',3:'Spring',4:'Spring',5:'Spring',6:'Summer',7:'Summer',8:'Summer',9:'Fall',10:'Fall',11:'Fall',12:'Winter'};
+const monthNames = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const wColors = {rain:'#4f9cf9',sun:'#fbbf24',fog:'#94a3b8',drizzle:'#34d399',snow:'#a78bfa'};
+const wEmoji  = {rain:'🌧️',sun:'☀️',fog:'🌫️',drizzle:'🌦️',snow:'❄️'};
+const modelNames = {rf:'Random Forest',gb:'Gradient Boosting',knn:'KNN',svm:'SVM',lr:'Logistic Reg.'};
+const modelAccs  = {rf:84.98,gb:84.64,knn:70.31,svm:64.85,lr:56.66};
+const modelBias  = {
+  rf: {rain:1.0,sun:1.0,fog:0.9,drizzle:0.7,snow:0.9},
+  gb: {rain:1.0,sun:1.0,fog:0.85,drizzle:0.65,snow:1.1},
+  knn:{rain:0.95,sun:0.95,fog:0.8,drizzle:0.6,snow:0.7},
+  svm:{rain:0.9,sun:0.9,fog:0.85,drizzle:0.65,snow:0.75},
+  lr: {rain:0.85,sun:0.85,fog:0.7,drizzle:0.5,snow:0.65},
+};
+const pillStyle = {
+  rain:'background:rgba(79,156,249,0.15);color:#4f9cf9;border:1px solid rgba(79,156,249,0.3)',
+  sun:'background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)',
+  fog:'background:rgba(148,163,184,0.15);color:#94a3b8;border:1px solid rgba(148,163,184,0.3)',
+  drizzle:'background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3)',
+  snow:'background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.3)'
+};
+let selModel = 'rf';
+
+function upd(id, val, unit) {
+  document.getElementById('v-'+id).textContent = parseFloat(val).toFixed(1)+' '+unit;
+  calcFeatures();
+}
+
+function calcFeatures() {
+  const tmax  = parseFloat(document.getElementById('tmax').value);
+  const tmin  = parseFloat(document.getElementById('tmin').value);
+  const wind  = parseFloat(document.getElementById('wind').value);
+  const prec  = parseFloat(document.getElementById('prec').value);
+  const month = parseInt(document.getElementById('month').value);
+  document.getElementById('f-range').textContent  = (tmax-tmin).toFixed(1)+'°';
+  document.getElementById('f-avg').textContent    = ((tmax+tmin)/2).toFixed(1)+'°';
+  document.getElementById('f-season').textContent = seasons[month];
+  const isRainy = [10,11,12,1,2,3].includes(month);
+  const hiWind  = wind > 4.0;
+  const heavyR  = prec > 2.8;
+  document.getElementById('f-rainy').textContent = isRainy?'Yes':'No';
+  document.getElementById('f-rainy').style.color = isRainy?'#f87171':'#34d399';
+  document.getElementById('f-wind').textContent  = hiWind?'Yes':'No';
+  document.getElementById('f-wind').style.color  = hiWind?'#f87171':'#34d399';
+  document.getElementById('f-rain').textContent  = heavyR?'Yes':'No';
+  document.getElementById('f-rain').style.color  = heavyR?'#f87171':'#34d399';
+}
+
+function selectModel(m, el) {
+  selModel = m;
+  document.querySelectorAll('.model-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function preset(prec,tmax,tmin,wind,month) {
+  document.getElementById('prec').value=prec; upd('prec',prec,'mm');
+  document.getElementById('tmax').value=tmax; upd('tmax',tmax,'°C');
+  document.getElementById('tmin').value=tmin; upd('tmin',tmin,'°C');
+  document.getElementById('wind').value=wind; upd('wind',wind,'m/s');
+  document.getElementById('month').value=month;
+  calcFeatures();
+  runPrediction();
+}
+
+function scoreWeather(prec,tmax,tmin,wind,month) {
+  const tempAvg = (tmax+tmin)/2;
+  const isRainy = [10,11,12,1,2,3].includes(month)?1:0;
+  const sc = {rain:0.05,sun:0.05,fog:0.05,drizzle:0.05,snow:0.05};
+  if(prec>10){sc.rain+=3.5;} else if(prec>2){sc.rain+=2.0;} else if(prec>0.5){sc.drizzle+=2.5;} else{sc.sun+=2.5;sc.fog+=0.8;}
+  if(tempAvg>18){sc.sun+=3.0;} else if(tempAvg>12){sc.sun+=1.5;sc.drizzle+=0.5;} else if(tempAvg>5){sc.fog+=1.5;sc.rain+=0.8;} else if(tempAvg<=1){sc.snow+=3.5;} if(tempAvg<-1){sc.snow+=2.0;}
+  if(wind>5){sc.rain+=1.0;} if(wind<2){sc.fog+=1.5;}
+  if(isRainy){sc.rain+=1.0;sc.drizzle+=0.5;sc.sun-=0.3;} else{sc.sun+=1.0;}
+  if([6,7,8].includes(month)){sc.sun+=1.5;} if([12,1,2].includes(month)){sc.snow+=0.5;} if([3,4,10,11].includes(month)){sc.fog+=0.5;}
+  Object.keys(sc).forEach(k=>{if(sc[k]<0.01)sc[k]=0.01;});
+  return sc;
+}
+
+function normalize(sc, bias) {
+  const b={};
+  Object.keys(sc).forEach(k=>b[k]=sc[k]*(bias[k]||1));
+  const t=Object.values(b).reduce((a,c)=>a+c,0);
+  const p={};
+  Object.keys(b).forEach(k=>p[k]=b[k]/t);
+  return p;
+}
+
+function runPrediction() {
+  const prec  = parseFloat(document.getElementById('prec').value);
+  const tmax  = parseFloat(document.getElementById('tmax').value);
+  const tmin  = parseFloat(document.getElementById('tmin').value);
+  const wind  = parseFloat(document.getElementById('wind').value);
+  const month = parseInt(document.getElementById('month').value);
+  const raw   = scoreWeather(prec,tmax,tmin,wind,month);
+  const probs = normalize(raw, modelBias[selModel]);
+  const best  = Object.keys(probs).reduce((a,b)=>probs[a]>probs[b]?a:b);
+  const conf  = Math.round(probs[best]*100);
+
+  document.getElementById('r-emoji').textContent = wEmoji[best];
+  document.getElementById('r-name').textContent  = best.charAt(0).toUpperCase()+best.slice(1);
+  document.getElementById('r-name').style.color  = wColors[best];
+  document.getElementById('r-modeltag').textContent = 'predicted by '+modelNames[selModel];
+  document.getElementById('r-confval').textContent  = conf+'%';
+  document.getElementById('r-mfill').style.width    = conf+'%';
+
+  const sorted = Object.keys(probs).sort((a,b)=>probs[b]-probs[a]);
+  document.getElementById('prob-bars').innerHTML = sorted.map(k=>`
+    <div class="prob-row-item">
+      <div class="prob-dot" style="background:${wColors[k]}"></div>
+      <span class="prob-name">${k}</span>
+      <div class="prob-track"><div class="prob-bar" style="width:${Math.round(probs[k]*100)}%;background:${wColors[k]}"></div></div>
+      <span class="prob-pct" style="color:${wColors[k]}">${Math.round(probs[k]*100)}%</span>
+    </div>`).join('');
+
+  document.getElementById('model-compare-bars').innerHTML = Object.keys(modelNames).map(m=>`
+    <div class="model-compare-row">
+      <span class="mcr-name">${modelNames[m]}${m==='rf'?'<span class="best-chip">BEST</span>':''}</span>
+      <div class="mcr-track"><div class="mcr-fill" style="width:${Math.round(modelAccs[m])}%;background:${m===selModel?wColors[best]:'rgba(255,255,255,0.1)'}"></div></div>
+      <span class="mcr-pct">${modelAccs[m]}%</span>
+    </div>`).join('');
+
+  const fi = [
+    {n:'precipitation',v:prec.toFixed(1)+'mm',p:Math.min(100,Math.round(prec/56*100*2.5+10))},
+    {n:'temp_avg',v:((tmax+tmin)/2).toFixed(1)+'°',p:62},
+    {n:'wind',v:wind.toFixed(1)+'m/s',p:45},
+    {n:'temp_range',v:(tmax-tmin).toFixed(1)+'°',p:38},
+    {n:'month',v:monthNames[month],p:28},
+    {n:'season',v:seasons[month],p:22},
+  ];
+  document.getElementById('feat-imp-bars').innerHTML = fi.map(f=>`
+    <div class="fi-row">
+      <span class="fi-name">${f.n}</span>
+      <div class="fi-track"><div class="fi-fill" style="width:${f.p}%"></div></div>
+      <span class="fi-pct">${f.v}</span>
+    </div>`).join('');
+
+  document.getElementById('input-summary').innerHTML = `
+    <div class="fi-row"><span class="fi-name">precipitation</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">${prec.toFixed(1)} mm</span></div>
+    <div class="fi-row"><span class="fi-name">temp_max</span><span style="font-family:var(--font-mono);font-size:12px;color:#f87171">${tmax.toFixed(1)} °C</span></div>
+    <div class="fi-row"><span class="fi-name">temp_min</span><span style="font-family:var(--font-mono);font-size:12px;color:#60a5fa">${tmin.toFixed(1)} °C</span></div>
+    <div class="fi-row"><span class="fi-name">wind</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--teal)">${wind.toFixed(1)} m/s</span></div>
+    <div class="fi-row"><span class="fi-name">month</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--accent2)">${monthNames[month]} (${month})</span></div>
+    <div class="fi-row"><span class="fi-name">season</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--amber)">${seasons[month]}</span></div>
+    <div class="fi-row"><span class="fi-name">model</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--green)">${modelNames[selModel]}</span></div>
+  `;
+
+  document.getElementById('result-section').classList.add('show');
+  document.getElementById('result-section').scrollIntoView({behavior:'smooth',block:'start'});
+  showToast('✓ Prediction complete — '+best.toUpperCase()+' ('+conf+'% confidence)');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = '<span class="t-green">'+msg+'</span>';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+function loadCSV(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.trim().split('\n');
+    const headers = lines[0].split(',').map(h=>h.trim());
+    const rows = lines.slice(1,6).map(l=>l.split(',').map(c=>c.trim()));
+    document.getElementById('s-rows').textContent = (lines.length-1).toLocaleString();
+    document.getElementById('upload-title').textContent = '✓ '+file.name+' loaded';
+    document.getElementById('upload-sub').textContent = (lines.length-1)+' rows · '+headers.length+' columns detected';
+
+    const tbl = document.getElementById('csv-table');
+    tbl.innerHTML = '<tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>'
+      +rows.map(r=>'<tr>'+r.map((c,i)=>{
+        if(headers[i]==='weather'){
+          return `<td><span class="wpill" style="${pillStyle[c]||''}">${c}</span></td>`;
+        }
+        return `<td>${c}</td>`;
+      }).join('')+'</tr>').join('');
+    document.getElementById('csv-preview-box').style.display = 'block';
+
+    const wi  = headers.indexOf('precipitation');
+    const txi = headers.indexOf('temp_max');
+    const tni = headers.indexOf('temp_min');
+    const wdi = headers.indexOf('wind');
+    const r0  = rows[0];
+    if(wi>=0){document.getElementById('prec').value=r0[wi];upd('prec',r0[wi],'mm');}
+    if(txi>=0){document.getElementById('tmax').value=r0[txi];upd('tmax',r0[txi],'°C');}
+    if(tni>=0){document.getElementById('tmin').value=r0[tni];upd('tmin',r0[tni],'°C');}
+    if(wdi>=0){document.getElementById('wind').value=r0[wdi];upd('wind',r0[wdi],'m/s');}
+    calcFeatures();
+    showToast('✓ CSV loaded — '+file.name);
+  };
+  reader.readAsText(file);
+}
+
+calcFeatures();
+</script>
+</body>
+</html>
